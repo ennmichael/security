@@ -1,0 +1,274 @@
++-----------------------------------------------+
+|      TABLE OF CONTENTS                        |
++-----------------------------------------------+
+| H. Hash Functions                             |
+|     H.1. Explanation                          |
+| M. MACs                                       |
+|     M.1. Explanation                          |
+| S. Secret-Key Cryptography                    |
+|     S.1. Explanation                          |
+| P. Public-Key Cryptography                    |
+|     P.1. Explanation                          |
+| D. Digital Signatures                         |
+|     D.1. Explanation                          |
+| C. Ciphers                                    | TODO Substitution ciphers
+|     C.1. Explanation                          |
+|     C.2. Block Ciphers                        |
+|     C.3. Stream Ciphers                       |
+|     C.4. ECB Mode                             |
+|     C.5. CBC Mode                             |
+|     C.6. CFB Mode                             |
+|     C.7. Counter Mode                         |
+| A. Attacks                                    |
+|     A.1. Ciphertext Only Attack               |
+|     A.2. Known Plaintext Attack               |
+|     A.3. Replay Attack                        |
+|     A.4. ECB Detection                        |
+|     A.5. Block Size Detection                 |
+|     A.6. Padding Scheme Detection             |
+|     A.7. ECB Vulnerabilities                  |
++-----------------------------------------------+
+
+
+
+H. Hash Functions
+
+H.1. Explanation
+
+  FIXME This is too lawyer-y F is a hash function if given a
+  possibly variable-length sequence of bits X it produces a
+  fixed-length bit sequence Y. Obviously, two different inputs X1
+  and X2 can produce the same hash value Y because the input
+  domain is variable-length and the output domain is fixed-length.
+  With hash functions, it typically matters how much time it takes
+  to produce the ouput given the input, and whether they are
+  reversible. If, given Y, one can calculate the value of X, the
+  hash function is not "one-way" and should not be used for
+  security purposes (it may still be used e.g. in a hashmap
+  implementation). If, given Y, one cannot calculate the value of
+  X, the hash function is "one-way" and maybe could be used for
+  security purposes. Genrally, for a hash function to really be
+  secure, it should take a long-ish (what is long-ish?) time to
+  calculate Y, i.e. it should take as long as possible for an
+  attacker to bruteforce X from Y.
+
+
+
+M. MACs
+
+M.1. Explanation
+
+  Short for message authentication code. MACs are similar to
+  hashes, except a secret key is involved in the process of
+  producing them. They're used to prove data authenticity. Given a
+  secure MAC and the key, one should not be able to reproduce the
+  original message. Given a secure MAC and the original message,
+  one should not be able to derive the key. The security in using
+  MACs comes from the fact that even though someone can modify
+  original data (the data may not be secret), they cannot
+  recalculate the MAC (the key is secret).
+
+
+
+S. Secret-Key Cryptography
+
+S.1. Explanation
+
+  Also called symmetric cryptography. Secret-key cryptography
+  encryption algorithms produce an output value Y given an input
+  value X and a key K. Decryption algorithms produce X given Y and
+  K. If an attacker knows the key, he can intercept and decrypt
+  secret messages. This means that K should always be a secret
+  shared by the communicating parties and hidden from the
+  attacker.
+
+
+
+P. Public-Key Cryptography
+
+P.1. Explanation
+
+  Managment of cryptographic keys with Secret-Key cryptography can
+  be difficult. With Public-Key Cryptography, define the input X,
+  output Y, a public key KPUB and a private key KPRIV. Encryption
+  algorithms produce Y given X and KPUB. Decryption algorithms
+  produce X given Y and KPRIV. KPRIV should be hidden and only
+  known by the person receiving messages. KPUB can be known by
+  anyone. This would mean that anyone can encrypt messages using
+  KPUB, but only the single person meant to to recieve them can
+  decrypt them. The drawback is that the number and size of
+  messages tends to be increased compared to Secret-Key
+  Cryptography. Also called Asymmetric Cryptography.
+
+
+
+D. Digital Signatures
+
+D.1. Explanation
+
+  Digital signatures are used to prove authenticity of messages,
+  and can be most easily achieved using public-key cryptography,
+  but with repurposed keys: the private key KPRIV would be used
+  for decryption, while the public key KPUB would be used for
+  encryption. Person A encrypts a message using KPUB and sends it
+  to person B. Person B owns KPRIV. If she successfully decrypts
+  the message using KPRIV, the message is authentic, meaning a
+  digital signature is achieved. If the message instead decrypts
+  to garbled plaintext, a digital signature is not achieved and
+  the message was a fake. It is often easier to simply sign the
+  hash of a message or document. Now the hash is the only data
+  that has to be encrypted and decrypted, which can be
+  significatly smaller than the message or document itself.
+
+
+
+C. Ciphers
+
+C.1. Explanation
+
+  Ciphers are cryptographic algorithms used for encryption and
+  decryption.
+
+C.2. Block Ciphers
+
+  Block ciphers operate on fixed-size blocks of data. Typically,
+  the block size is the same as the key size. This means that
+  input data should fit into blocks neatly, i.e. the input size
+  should be divisible by the block size. In practice, this isn't
+  always true, and the last block is incomplete. In this case, the
+  last piece of plaintext needs to be padded to properly fill up
+  the block. A popular padding scheme is PKCS#7. Take an
+  incomplete block "ABC", and the block size of 5. Padded with
+  PKCS#7, the block becomes "ABC\x02\x02", i.e. each empty byte is
+  filled with the number of bytes missing to complete the block.
+  Block ciphers can operate in different modes, which further
+  describe how blocks are generated and allow core algorithms to
+  be reused in a larger number of scenarios.
+
+C.3. Stream Ciphers
+
+  Stream ciphers operate on streams of binary data, one bit at a
+  time. The keys used are also streams of binary data. Ideal key
+  streams are infinite (they should generate bits one after
+  another, ad infinitum). This isn't practical, and eventually
+  there's a repetition, but the repetition only starts after a
+  very large number of unique bits was already generated.
+
+C.4. ECB Mode
+
+  Short for electronic codebook mode. ECB is the most basic block
+  cipher mode. With ECB, every single block of plaintext is turned
+  into a single block of ciphertext during encryption and vice
+  versa during decryption. This means that blocks may be encrypted
+  and decrypted in parallel, but they can also be attacked in
+  parallel. This mode does not conceal patterns very well. If two
+  or more plaintext blocks are the same, the according ciphertext
+  blocks will also be the same. This mode is vulnerable to replay
+  attacks, because there is no way to detect if any blocks of
+  ciphertext were replaced during transmission. A one-bit error in
+  the ciphertext results in a one-bit error in the ciphertext.
+
+C.5. CBC Mode
+
+  Short for cipher block chain. CBC solves the problems that ECB
+  suffers from. In ECB mode, each plaintext block is xor'ed with
+  the previous ciphertext block before being encrypted. After
+  being decrypted, each decrypted block is xor'ed with the
+  previous ciphertext block to give the plaintext. The first block
+  is xor'ed with the ciphertext of a special extra block called
+  the initialization vector or IV for short. The IV doesn't need
+  to be secret. CBC conceals patterns and makes replay attacks
+  impossible. A one-bit error in the ciphertext causes a one-bit
+  error in the appropriate block. It also causes the next block
+  after it to decrypt to garbage. No error happens in any of the
+  other blocks. This means an attacker could be able to change the
+  contents of a message's last block without being noticed.
+
+C.6. CFB Mode
+
+  TODO
+
+C.7. Counter Mode
+
+  TODO
+
+
+
+A. Attacks
+
+A.1. Ciphertext Only Attack
+
+  An attacker only knows the ciphertext of a message. She doesn't
+  know the plaintext or the key. If the ciphertext is a simple
+  hash, she can try to bruteforce it to get the plaintext.
+
+A.2. Known Plaintext Attack
+
+  An attacker knows a plaintext and the according ciphertext. She
+  tries to derive a key from these. If she is also able to chose a
+  plaintext and get the according ciphertext on-demand, this is
+  often called a chosen-plaintext attack.
+
+A.3. Replay-Attack
+
+  If an attacker achieves a man-in-the-middle position, she can
+  intercept traffic and replace certan bits, bytes or blocks of
+  ciphertext. If she is able to carry out a chosen-plaintext
+  attack, and she knows the layout of messages, she can fake
+  messages by keeping the same encrypted timestamps but changing
+  the body of the message to her choosing. Block ciphers operating
+  in EBC mode are vulnerable to this type of attack.
+
+A.4. ECB Detection
+
+  The main problem with ECB is that it is a deterministic mode. In
+  large messages, blocks of plaintext are bound to repeat, causing
+  blocks of ciphertext to repeat as well (for very large messages,
+  duplication can happen in CBC mode as well, but it still serves
+  as a good heuristic). If an attacker can carry out a
+  chosen-plaintext attack and knows the block size, she can be
+  completely sure if a cipher is using ECB: she should feed a
+  plaintext string consisting of two identical block-sized
+  substrings into the cipher. If the appropriate ciphertext blocks
+  are identical, the cipher is running in ECB mode.
+
+A.5. Block Size Detection
+
+  If an attacker can carry out a chosen-plaintext attack, she can
+  easily determine the cipher's block size. She should frist feed
+  a minimum-sized input to the cipher and record the ciphertext
+  size. Then, keep increasing the input size by 1 until the
+  ciphertext size changes. The difference between new and old
+  ciphertext sizes is the block size.
+
+A.6. Padding Scheme Detection
+
+  If an attacker can carry out a chosen-plaintext attack and knows
+  the block size, she can easily determine the padding scheme.
+  Start from SIZE(input) = 0 and keep increasing SIZE(input) until
+  the ciphertext size increases by SIZE(block).
+
+A.7. ECB Vulnerabilities
+
+  The biggest problem with ECB is that it is a deterministic mode:
+  every single block of plaintext is encrypted to an according
+  single block of ciphertext. This means that ECB does not conceal
+  patterns. Often, this can be easily exploited if an attacker can
+  employ a chosen-plaintext attack. If any text is appended to the
+  chosen plaintext (say, a footer containing some information of
+  an attacker's interest), there's a good chance that she can
+  decrypt that text without knowing the key. She would: make sure
+  that the cipher is using ECB mode. Find out what block-size the
+  cipher is using. Make SIZE(chosen-plaintext) be SIZE(block) - 1.
+  Now the first block only has a single unknown byte, which is the
+  first byte of the unknown appended string, which is trivial to
+  bruteforce. Keep reducing the size of the chosen plaintext,
+  bruteforcing more and more bytes of the unknown string. This
+  will ultimately yield the unknown string, possibly padded. If
+  the unknown string is bigger than a single block, make
+  SIZE(chosen-plaintext) be X * SIZE(block) - 1 and start the
+  bruteforce attack from the (X-1)-th block. Alternatively, she
+  could make SIZE(chosen-plaintext) be 0. If she knows the padding
+  scheme, she can carry out the bruteforcing starting from the
+  last block, increasing SIZE(chosen-plaintext) with each new
+  byte. This is likely to be slower.
